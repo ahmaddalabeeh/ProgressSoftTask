@@ -190,7 +190,7 @@ class _SignInViewState extends State<_SignInView> {
                       ),
                       recognizer: TapGestureRecognizer()
                         ..onTap = () {
-                          NavigationHelper.navigateTo(
+                          NavigationHelper.navigateToAsync(
                               context,
                               SignUpScreen(
                                 sharedPreferences: widget.sharedPreferences,
@@ -250,10 +250,10 @@ void _showNewUserDialog(
                 ),
                 TextButton(
                   child: Text(AppLocalizations.of(context)!.signUp),
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.of(context).pop();
 
-                    NavigationHelper.navigateTo(context,
+                    NavigationHelper.navigateToAsync(context,
                         SignUpScreen(sharedPreferences: sharedPreferences));
                   },
                 ),

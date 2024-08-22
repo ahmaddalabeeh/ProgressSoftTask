@@ -128,6 +128,7 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
         ));
       }
     } catch (e) {
+      print(e.toString());
       emit(state.copyWith(
         status: AuthStatus.failure,
         errorMessage: e.toString(),
@@ -143,64 +144,64 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
         .collection('users')
         .doc('user_id')
         .get();
-    if (userDoc.exists) {
-      final storedPhoneNumber = userDoc.get('phoneNumber');
-      var formattedPhoneNumber = '+962${event.phoneNumber}';
-      if (storedPhoneNumber == formattedPhoneNumber) {
-        emit(state.copyWith(
-          status: AuthStatus.userExists,
-        ));
-      } else if (storedPhoneNumber != event.phoneNumber) {
-        try {
-          await FirebaseAuth.instance.verifyPhoneNumber(
-            phoneNumber: formattedPhoneNumber,
-            verificationCompleted: (PhoneAuthCredential credential) async {
+    // if (userDoc.exists) {
+    // final storedPhoneNumber = userDoc.get('phoneNumber');
+    var formattedPhoneNumber = '+962${event.phoneNumber}';
+    //   if (storedPhoneNumber == formattedPhoneNumber) {
+    //     emit(state.copyWith(
+    //       status: AuthStatus.userExists,
+    //     ));
+    //   } else if (storedPhoneNumber != event.phoneNumber) {
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: formattedPhoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
 // Todo: i think in here I need to navigate to home screen
 //TODO: Upload data here
-              UserCredential userCredential =
-                  await FirebaseAuth.instance.signInWithCredential(credential);
-              final user = userCredential.user;
-              if (user != null) {
-                emit(state.copyWith(
-                  status: AuthStatus.otpVerified,
-                  errorMessage: "Authentication failed.",
-                ));
-              } else {
-                emit(state.copyWith(
-                  status: AuthStatus.failure,
-                  errorMessage: "Authentication failed.",
-                ));
-              }
-            },
-            verificationFailed: (FirebaseAuthException e) {
-              emit(state.copyWith(
-                status: AuthStatus.failure,
-                errorMessage: e.message,
-              ));
-              if (!completer.isCompleted) {
-                completer.complete(); // Complete the completer on failure
-              }
-            },
-            codeSent: (String verificationID, int? resendToken) async {
-              if (!completer.isCompleted) {
-                completer.complete(); // Complete the completer on failure
-              }
-              emit(state.copyWith(
-                  verificationId: verificationID, status: AuthStatus.otpSent));
-            },
-            codeAutoRetrievalTimeout: (String verificationId) {
-              // Handle timeout scenario
-            },
-          );
-          await completer.future;
-        } catch (e) {
+          UserCredential userCredential =
+              await FirebaseAuth.instance.signInWithCredential(credential);
+          final user = userCredential.user;
+          if (user != null) {
+            emit(state.copyWith(
+              status: AuthStatus.otpVerified,
+              errorMessage: "Authentication failed.",
+            ));
+          } else {
+            emit(state.copyWith(
+              status: AuthStatus.failure,
+              errorMessage: "Authentication failed.",
+            ));
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
           emit(state.copyWith(
             status: AuthStatus.failure,
-            errorMessage: e.toString(),
+            errorMessage: e.message,
           ));
-        }
-      }
+          if (!completer.isCompleted) {
+            completer.complete(); // Complete the completer on failure
+          }
+        },
+        codeSent: (String verificationID, int? resendToken) async {
+          if (!completer.isCompleted) {
+            completer.complete(); // Complete the completer on failure
+          }
+          emit(state.copyWith(
+              verificationId: verificationID, status: AuthStatus.otpSent));
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          // Handle timeout scenario
+        },
+      );
+      await completer.future;
+    } catch (e) {
+      emit(state.copyWith(
+        status: AuthStatus.failure,
+        errorMessage: e.toString(),
+      ));
     }
+    // }
+    // }
   }
 
   Future<void> onSignInRequested(

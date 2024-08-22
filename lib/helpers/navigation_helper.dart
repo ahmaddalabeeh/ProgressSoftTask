@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class NavigationHelper {
-  static void navigateTo(BuildContext context, Widget page) {
-    Navigator.of(context).push(_createRoute(page));
+  static Future<void> navigateToAsync(BuildContext context, Widget page) {
+    return Navigator.of(context).push(_createRoute(page));
   }
 
   static void navigateToReplacement(BuildContext context, Widget page) {

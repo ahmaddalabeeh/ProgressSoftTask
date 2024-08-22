@@ -228,16 +228,29 @@ class _SignUpViewState extends State<_SignUpView> {
                 height: 30.h,
               ),
               BlocListener<AuthBloc, AuthState>(
-                listener: (context, state) {
+                listener: (ctx, state) async {
                   {
                     if (state.verificationId.isNotEmpty &&
                         state.status == AuthStatus.otpSent) {
-                      NavigationHelper.navigateTo(
+                      await NavigationHelper.navigateToAsync(
                         context,
                         OtpScreen(
                             verificationId: state.verificationId,
                             sharedPreferences: widget.sharedPreferences),
                       );
+                      if (state.status == AuthStatus.otpVerified) {
+                        // Insert data
+                        print("====== upload data");
+                        ctx.read<AuthBloc>().add(UploadUserDataRequested(
+                              password: _passwordController.text,
+                              name: _nameController.text,
+                              //TODO: Change this when it works
+                              userId: 'user_id',
+                              phoneNumber: _phoneNumberController.text,
+                              age: _ageController.text,
+                              gender: _genderController.text,
+                            ));
+                      }
                     } else if (state.status == AuthStatus.failure) {
                       // Show error message or handle failure
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -265,21 +278,6 @@ class _SignUpViewState extends State<_SignUpView> {
                                       gender: _genderController.text,
                                       password: _passwordController.text,
                                     ));
-                                //TODO: Move this one below in the otp verify page saying that is AuthStatus.success then call it
-                                if (state.status == AuthStatus.otpVerified) {
-                                  ctx
-                                      .read<AuthBloc>()
-                                      .add(UploadUserDataRequested(
-                                        password: _passwordController.text,
-                                        name: _nameController.text,
-                                        //TODO: Change this when it works
-                                        userId: 'user_id',
-                                        phoneNumber:
-                                            _phoneNumberController.text,
-                                        age: _ageController.text,
-                                        gender: _genderController.text,
-                                      ));
-                                }
                               }
                             }
                           : null,

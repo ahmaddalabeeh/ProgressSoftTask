@@ -69,38 +69,46 @@ class _OtpScreenState extends State<OtpScreen> {
           ),
         ),
         backgroundColor: AppColors.backGroundAppColor,
-        body: BlocListener<AuthBloc, AuthState>(
-          listener: (context, state) {
-            if (state.status == AuthStatus.otpVerified) {
-              print('Verified');
-              // You can add additional logic for OTP verified here
-            }
-          },
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    ResourcePath.progress_soft_logo_png,
-                    width: 250.w,
-                    height: 250.h,
-                  ),
-                  SizedBox(height: 20.h),
-                  Pinput(
-                    length: 6,
-                    onCompleted: (otp) {
-                      context.read<AuthBloc>().add(VerifyOtpEvent(otp));
-                    },
-                  ),
-                  SizedBox(height: 20.h),
-                  Text(
-                    'OTP Timer: $_start',
-                    style: const TextStyle(color: AppColors.primaryColor),
-                  ),
-                ],
+        body: BlocProvider(
+          create: (_) => AuthBloc(widget.sharedPreferences),
+          child: BlocListener<AuthBloc, AuthState>(
+            listener: (context, state) {
+              if (state.status == AuthStatus.otpVerified) {
+                Navigator.pop(context);
+                // You can add additional logic for OTP verified here
+              } else {
+                //TODO: Show Error Dialog
+              }
+            },
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      ResourcePath.progress_soft_logo_png,
+                      width: 250.w,
+                      height: 250.h,
+                    ),
+                    SizedBox(height: 20.h),
+                    Pinput(
+                      length: 6,
+                      onCompleted: (otp) {
+                        context.read<AuthBloc>().add(VerifyOtpRequested(
+                              verificationId: widget.verificationId,
+                              otpCode: otp,
+                            ));
+                      },
+                    ),
+                    SizedBox(height: 20.h),
+                    Text(
+                      'OTP Timer: $_start',
+                      style: const TextStyle(color: AppColors.primaryColor),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
