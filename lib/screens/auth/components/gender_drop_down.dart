@@ -26,17 +26,20 @@ class GenderDropdownTextFieldState extends State<GenderDropdownTextField> {
         final selectedGender = await showModalBottomSheet<String>(
           context: context,
           builder: (BuildContext context) {
-            return SafeArea(
-              child: ListView.builder(
-                itemCount: genders.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    title: Text(genders[index]),
-                    onTap: () {
-                      Navigator.pop(context, genders[index]);
-                    },
-                  );
-                },
+            return FractionallySizedBox(
+              heightFactor: 0.3,
+              child: SafeArea(
+                child: ListView.builder(
+                  itemCount: genders.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      title: Text(genders[index]),
+                      onTap: () {
+                        Navigator.pop(context, genders[index]);
+                      },
+                    );
+                  },
+                ),
               ),
             );
           },
@@ -66,11 +69,11 @@ class GenderDropdownTextFieldState extends State<GenderDropdownTextField> {
               size: 22.r,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30.0),
+              borderRadius: BorderRadius.circular(30.r),
               borderSide: BorderSide.none,
             ),
             contentPadding:
-                const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                EdgeInsets.symmetric(vertical: 15.h, horizontal: 20.w),
             filled: true,
             fillColor: Colors.white,
             enabledBorder: OutlineInputBorder(
@@ -79,7 +82,7 @@ class GenderDropdownTextFieldState extends State<GenderDropdownTextField> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(30.0),
-              borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+              borderSide: BorderSide(color: AppColors.primaryColor, width: 2.w),
             ),
           ),
         ),

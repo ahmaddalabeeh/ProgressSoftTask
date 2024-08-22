@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:ahmad_progress_soft_task/screens/auth/auth_imports.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +14,7 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<AuthSignedIn>(_onAuthSignedIn);
     on<AuthSignedOut>(_onAuthSignedOut);
+    on<CodeSent>(_onCodeSent);
     on<UploadUserDataRequested>(onUploadUserDataRequested);
   }
   Future<void> _onAuthCheckRequested(
@@ -28,6 +27,14 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
     } else {
       emit(AuthSignedOutState());
     }
+  }
+
+  Future<void> _onCodeSent(
+    CodeSent event,
+    Emitter<AuthState> emit,
+  ) async {
+    print('${event.verificationId}---------------CodeSENT_____--------------');
+    emit(CodeSentState());
   }
 
   Future<void> uploadUserData({
@@ -116,7 +123,7 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
             .get();
 
         if (userDoc.exists) {
-          //TODO: in here navigate pack and then show a success dialog for two seconds or something and then navigate to home page.
+          //TODO: in here navigate back and then show a success dialog for two seconds or something and then navigate to home page.
           emit(state.copyWith(status: AuthStatus.success));
         } else {
           emit(state.copyWith(
@@ -146,14 +153,14 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: '+962${event.phoneNumber}',
         verificationCompleted: (PhoneAuthCredential credential) async {
-          print('verifyPhoneNumber===========================');
 // Todo: i think in here I need to navigate to home screen
+//TODO: Upload data here
           UserCredential userCredential =
               await FirebaseAuth.instance.signInWithCredential(credential);
           final user = userCredential.user;
           if (user != null) {
             emit(state.copyWith(
-              status: AuthStatus.success,
+              status: AuthStatus.otpVerified,
               errorMessage: "Authentication failed.",
             ));
           } else {
@@ -164,26 +171,18 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
           }
         },
         verificationFailed: (FirebaseAuthException e) {
-          print('verificationFailed===========================');
-
           emit(state.copyWith(
             status: AuthStatus.failure,
             errorMessage: e.message,
           ));
         },
         codeSent: (String verificationID, int? resendToken) async {
-          emit(state.copyWith(verificationId: verificationID));
-
           //TODO: Code is being sent but I need to navigate to otp screen and verify it
           //TODO: user_id everywhere
-
-          print(
-              "$verificationID[---------------------------------------------------]");
+          emit(CodeSentState());
           emit(state.copyWith(verificationId: verificationID));
-          state.copyWith(verificationId: verificationID);
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          print('codeAutoRetrievalTimeout===========================');
           // Handle timeout scenario
         },
       );
@@ -198,73 +197,37 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
   Future<void> onSignInRequested(
       SignInRequested event, Emitter<AuthState> emit) async {
     emit(state.copyWith(status: AuthStatus.loading));
-
+    AuthStatus statusAuth = AuthStatus.loading;
     try {
       // Start phone number verification
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: event.phoneNumber,
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          UserCredential userCredential =
-              await FirebaseAuth.instance.signInWithCredential(credential);
-          final user = userCredential.user;
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc('user_id')
+          .get();
 
-          if (user != null) {
-            emit(state.copyWith(status: AuthStatus.success));
-          } else {
-            emit(state.copyWith(
-              status: AuthStatus.failure,
-              errorMessage: "Authentication failed.",
-            ));
-          }
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          // Handle verification failure
-          emit(state.copyWith(
-            status: AuthStatus.failure,
-            errorMessage: e.message,
-          ));
-        },
-        codeSent: (String verificationId, int? resendToken) async {
-          final userDoc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc('user_id')
-              .get();
+      if (userDoc.exists) {
+        final storedPassword = userDoc.get('password');
+        final storedPhoneNumber = userDoc.get('phoneNumber');
 
-          if (userDoc.exists) {
-            final storedPassword = userDoc.get('password');
-            final storedPhoneNumber = userDoc.get('phoneNumber');
-
-            if (storedPassword == event.password &&
-                event.phoneNumber == storedPhoneNumber) {
-              print(
-                  '--------------------storedPass=$storedPassword && eventOne is ${event.password}');
-              print(
-                  '--------------------storedPhone=$storedPhoneNumber && eventOne is ${event.phoneNumber}');
-              emit.isDone;
-
-              emit(state.copyWith(status: AuthStatus.success));
-              print(
-                  '----------------------------------------${state.status}-----------------');
-            } else if (event.phoneNumber == storedPhoneNumber &&
-                storedPhoneNumber != event.password) {
-              emit.isDone;
-              emit(state.copyWith(
-                status: AuthStatus.wrongPassword,
-              ));
-            }
-          } else {
-            emit(state.copyWith(
-              status: AuthStatus.failure,
-              errorMessage: "User does not exist in Firestore.",
-            ));
-          }
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {},
-      );
+        if (storedPassword == event.password &&
+            event.phoneNumber == storedPhoneNumber) {
+          statusAuth = AuthStatus.success;
+        } else if (event.phoneNumber == storedPhoneNumber &&
+            storedPhoneNumber != event.password) {
+          emit.isDone;
+          statusAuth = AuthStatus.wrongPassword;
+        }
+      } else {
+        emit(state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: "User does not exist in Firestore.",
+        ));
+      }
     } catch (e) {
+      statusAuth = AuthStatus.failure;
+    } finally {
       emit(state.copyWith(
-        status: AuthStatus.failure,
-        errorMessage: e.toString(),
+        status: statusAuth,
       ));
     }
   }
@@ -291,14 +254,15 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
     final isGenderValid = event.gender?.isNotEmpty;
     final isAgeValid = event.age?.isNotEmpty;
     final isFullNameValid = event.fullName?.isNotEmpty;
-    final isConfirmPasswordValid = event.confirmPassword?.isNotEmpty;
+    final isConfirmPasswordValid = event.confirmPassword == event.password;
     final isButtonEnabled = isPhoneNumberValid && isPasswordValid;
     final isSignUpButtonEnabled = isSignUpPhoneNumberValid &&
         isPasswordValid &&
-        isConfirmPasswordValid! &&
+        isConfirmPasswordValid &&
         isGenderValid! &&
         isFullNameValid! &&
-        isAgeValid!;
+        isAgeValid! &&
+        (event.password == event.confirmPassword);
 
     emit(state.copyWith(
         phoneNumber: event.phoneNumber,

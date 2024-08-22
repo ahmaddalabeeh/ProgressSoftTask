@@ -131,6 +131,14 @@ class VerifyOtpRequested extends IAuthEvent {
 
 class AuthCheckRequested extends IAuthEvent {}
 
+class CodeSent extends IAuthEvent {
+  final String verificationId;
+
+  const CodeSent({required this.verificationId});
+  @override
+  List<Object> get props => [verificationId];
+}
+
 class AuthSignedIn extends IAuthEvent {}
 
 class AuthSignedOut extends IAuthEvent {}

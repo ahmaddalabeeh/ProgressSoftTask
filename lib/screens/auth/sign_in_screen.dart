@@ -15,7 +15,7 @@ class SignInScreen extends StatelessWidget {
         listener: (context, state) {
           if (state.status == AuthStatus.success) {
             // Navigate to the home screen
-            NavigationHelper.navigateTo(
+            NavigationHelper.navigateToReplacement(
                 context,
                 HomeScreen(
                   sharedPreferences: sharedPreferences,

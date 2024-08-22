@@ -202,6 +202,9 @@ class _SignUpViewState extends State<_SignUpView> {
                             ),
                           );
                     },
+                    errorText: state.isConfirmPasswordValid
+                        ? null
+                        : 'Passwords must match',
                     obscureText: !state.showConfirmPassword,
                   );
                 },
@@ -211,7 +214,6 @@ class _SignUpViewState extends State<_SignUpView> {
               ),
               BlocListener<AuthBloc, AuthState>(
                 listener: (context, state) {
-                  print('${state.verificationId}  --  -- - - - -----------');
                   {
                     if (state.verificationId.isNotEmpty) {
                       NavigationHelper.navigateTo(
@@ -233,34 +235,32 @@ class _SignUpViewState extends State<_SignUpView> {
                     return CustomElevatedButton(
                       onPressed: state.isSignUpButtonEnabled
                           ? () {
-                              ctx.read<AuthBloc>().add(RegisterRequested(
-                                    fullName: _nameController.text,
-                                    phoneNumber: _phoneNumberController.text,
-                                    age: _ageController.text,
-                                    gender: _genderController.text,
-                                    password: _passwordController.text,
-                                  ));
-                              //TODO: Move this one below in the otp verify page saying that is AuthStatus.success then call it
-                              ctx.read<AuthBloc>().add(UploadUserDataRequested(
-                                    password: _passwordController.text,
-                                    name: _nameController.text,
-                                    //TODO: CHange this when it works
-                                    userId: 'user_id',
-                                    phoneNumber: _phoneNumberController.text,
-                                    age: _ageController.text,
-                                    gender: _genderController.text,
-                                  ));
-                              // Future.delayed(const Duration(seconds: 4))
-                              //     .then((s) {
-                              //   if (state.verificationId != null) {
-                              //     NavigationHelper.navigateTo(
-                              //       context,
-                              //       OtpScreen(
-                              //           verificationId:
-                              //               state.verificationId ?? ''),
-                              //     );
-                              //   }
-                              // });
+                              if (state.status == AuthStatus.loading) {
+                                null;
+                              } else {
+                                ctx.read<AuthBloc>().add(RegisterRequested(
+                                      fullName: _nameController.text,
+                                      phoneNumber: _phoneNumberController.text,
+                                      age: _ageController.text,
+                                      gender: _genderController.text,
+                                      password: _passwordController.text,
+                                    ));
+                                //TODO: Move this one below in the otp verify page saying that is AuthStatus.success then call it
+                                if (state.status == AuthStatus.otpVerified) {
+                                  ctx
+                                      .read<AuthBloc>()
+                                      .add(UploadUserDataRequested(
+                                        password: _passwordController.text,
+                                        name: _nameController.text,
+                                        //TODO: CHange this when it works
+                                        userId: 'user_id',
+                                        phoneNumber:
+                                            _phoneNumberController.text,
+                                        age: _ageController.text,
+                                        gender: _genderController.text,
+                                      ));
+                                }
+                              }
                             }
                           : null,
                       isEnabled: state.isSignUpButtonEnabled,

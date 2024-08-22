@@ -105,10 +105,26 @@ class AuthState extends Equatable {
   }
 }
 
-enum AuthStatus { initial, loading, success, failure, wrongPassword }
+enum AuthStatus {
+  initial,
+  loading,
+  success,
+  failure,
+  wrongPassword,
+  otpVerified
+}
 
 class AuthInitial extends AuthState {}
 
 class AuthSignedInState extends AuthState {}
+
+class CodeSentState extends AuthState {
+  final String verificationID;
+  CodeSentState({required this.verificationID}) {
+    super.verificationId = verificationID;
+  }
+  @override
+  List<Object> get props => [verificationId];
+}
 
 class AuthSignedOutState extends AuthState {}
