@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "473872342168",
+    "project_id": "ahmad-progresssofttask",
+    "storage_bucket": "ahmad-progresssofttask.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:473872342168:android:1303fe255871be4e3784ed",
+        "android_client_info": {
+          "package_name": "com.example.ahmad_progress_soft_task"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "473872342168-ilapd0pi6ad0nja3q08maict727o23hq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDu7qPHbU4oxwM0gE50I5p_OA1vNakhqOs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "473872342168-ilapd0pi6ad0nja3q08maict727o23hq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "473872342168-qsp2f0293f3atngvdm9ehrlke9pv52io.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ahmadProgressSoftTask"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
