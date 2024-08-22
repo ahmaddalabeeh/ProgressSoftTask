@@ -3,11 +3,13 @@ import 'package:ahmad_progress_soft_task/screens/auth/auth_imports.dart';
 class GenderDropdownTextField extends StatefulWidget {
   final TextEditingController textEditingController;
   final String hintText;
+  final String? errorText;
 
   const GenderDropdownTextField({
     super.key,
     required this.textEditingController,
     required this.hintText,
+    this.errorText,
   });
 
   @override
@@ -56,6 +58,15 @@ class GenderDropdownTextFieldState extends State<GenderDropdownTextField> {
           controller: widget.textEditingController,
           readOnly: true,
           decoration: InputDecoration(
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30.0.r),
+              borderSide: BorderSide(color: AppColors.error, width: 2.0.w),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30.0.r),
+              borderSide: BorderSide(color: AppColors.error, width: 2.0.w),
+            ),
+            errorText: widget.errorText,
             hintText: widget.hintText,
             prefixIcon: Icon(
                 widget.textEditingController.text ==

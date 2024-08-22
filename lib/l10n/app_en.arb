@@ -26,6 +26,12 @@
   "profile":"Profile",
   "home":"Home",
   "phoneNoSignInEg":"Phone No. example: +96279xxxxxxx",
-  "signOut":"Sign out"
+  "signOut":"Sign out",
+  "passwordMatch":"Passwords must match",
+  "cancel":"Cancel",
+  "phoneNumberNotFound":"Phone number not found. Create a new account?",
+  "newUser":"New User?",
+  "ageRequired":"Please select age",
+  "genderRequired":"Please select gender"
 
 }

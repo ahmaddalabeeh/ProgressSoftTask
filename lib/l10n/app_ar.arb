@@ -26,6 +26,12 @@
   "profile":"الحساب",
   "home":"الرئيسية",
   "phoneNoSignInEg":"مثال على رقم هاتف: +96279xxxxxxx",
-  "signOut":"تسجيل خروج"
+  "signOut":"تسجيل خروج",
+  "passwordMatch":"يجب تطابق كلمات المرور",
+  "cancel":"الغاء",
+  "phoneNumberNotFound":"لم يتم العثور على رقم الهاتف. تسجيل حساب جديد؟",
+  "ageRequired":"الرجاء اختيار العمر",
+  "genderRequired":"الرجاء اختيار الجنس"
+
 
 }

@@ -14,20 +14,20 @@ class SignInScreen extends StatelessWidget {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state.status == AuthStatus.success) {
-            // Navigate to the home screen
             NavigationHelper.navigateToReplacement(
                 context,
                 HomeScreen(
                   sharedPreferences: sharedPreferences,
                 ));
           } else if (state.status == AuthStatus.failure) {
-            // Show an error message
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                   content: Text(state.errorMessage ?? 'Authentication failed')),
             );
           } else if (state.status == AuthStatus.wrongPassword) {
             _showWrongPasswordDialog(context);
+          } else if (state.status == AuthStatus.newUser) {
+            _showNewUserDialog(context, sharedPreferences);
           }
         },
         child: _SignInView(sharedPreferences),
@@ -226,6 +226,40 @@ void _showWrongPasswordDialog(BuildContext context) {
           ),
         ],
       );
+    },
+  );
+}
+
+void _showNewUserDialog(
+    BuildContext context, SharedPreferences sharedPreferences) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.newUser),
+          content: Text(AppLocalizations.of(context)!.phoneNumberNotFound),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  child: Text(AppLocalizations.of(context)!.cancel),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text(AppLocalizations.of(context)!.signUp),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+
+                    NavigationHelper.navigateTo(context,
+                        SignUpScreen(sharedPreferences: sharedPreferences));
+                  },
+                ),
+              ],
+            )
+          ]);
     },
   );
 }

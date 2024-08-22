@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ahmad_progress_soft_task/screens/auth/auth_imports.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +18,7 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
     on<AuthSignedOut>(_onAuthSignedOut);
     on<CodeSent>(_onCodeSent);
     on<UploadUserDataRequested>(onUploadUserDataRequested);
+    on<VerifyOtpRequested>(onVerifyOtpRequested);
   }
   Future<void> _onAuthCheckRequested(
     AuthCheckRequested event,
@@ -117,23 +120,10 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
       final user = userCredential.user;
 
       if (user != null) {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-
-        if (userDoc.exists) {
-          //TODO: in here navigate back and then show a success dialog for two seconds or something and then navigate to home page.
-          emit(state.copyWith(status: AuthStatus.success));
-        } else {
-          emit(state.copyWith(
-            status: AuthStatus.failure,
-            errorMessage: "User does not exist in Firestore.",
-          ));
-        }
+        emit(state.copyWith(status: AuthStatus.otpVerified));
       } else {
         emit(state.copyWith(
-          status: AuthStatus.failure,
+          status: AuthStatus.wrongOtp,
           errorMessage: "Authentication failed.",
         ));
       }
@@ -147,50 +137,69 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
 
   Future<void> onRegisterRequested(
       RegisterRequested event, Emitter<AuthState> emit) async {
+    final Completer<void> completer = Completer<void>();
     emit(state.copyWith(status: AuthStatus.loading));
-
-    try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: '+962${event.phoneNumber}',
-        verificationCompleted: (PhoneAuthCredential credential) async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc('user_id')
+        .get();
+    if (userDoc.exists) {
+      final storedPhoneNumber = userDoc.get('phoneNumber');
+      var formattedPhoneNumber = '+962${event.phoneNumber}';
+      if (storedPhoneNumber == formattedPhoneNumber) {
+        emit(state.copyWith(
+          status: AuthStatus.userExists,
+        ));
+      } else if (storedPhoneNumber != event.phoneNumber) {
+        try {
+          await FirebaseAuth.instance.verifyPhoneNumber(
+            phoneNumber: formattedPhoneNumber,
+            verificationCompleted: (PhoneAuthCredential credential) async {
 // Todo: i think in here I need to navigate to home screen
 //TODO: Upload data here
-          UserCredential userCredential =
-              await FirebaseAuth.instance.signInWithCredential(credential);
-          final user = userCredential.user;
-          if (user != null) {
-            emit(state.copyWith(
-              status: AuthStatus.otpVerified,
-              errorMessage: "Authentication failed.",
-            ));
-          } else {
-            emit(state.copyWith(
-              status: AuthStatus.failure,
-              errorMessage: "Authentication failed.",
-            ));
-          }
-        },
-        verificationFailed: (FirebaseAuthException e) {
+              UserCredential userCredential =
+                  await FirebaseAuth.instance.signInWithCredential(credential);
+              final user = userCredential.user;
+              if (user != null) {
+                emit(state.copyWith(
+                  status: AuthStatus.otpVerified,
+                  errorMessage: "Authentication failed.",
+                ));
+              } else {
+                emit(state.copyWith(
+                  status: AuthStatus.failure,
+                  errorMessage: "Authentication failed.",
+                ));
+              }
+            },
+            verificationFailed: (FirebaseAuthException e) {
+              emit(state.copyWith(
+                status: AuthStatus.failure,
+                errorMessage: e.message,
+              ));
+              if (!completer.isCompleted) {
+                completer.complete(); // Complete the completer on failure
+              }
+            },
+            codeSent: (String verificationID, int? resendToken) async {
+              if (!completer.isCompleted) {
+                completer.complete(); // Complete the completer on failure
+              }
+              emit(state.copyWith(
+                  verificationId: verificationID, status: AuthStatus.otpSent));
+            },
+            codeAutoRetrievalTimeout: (String verificationId) {
+              // Handle timeout scenario
+            },
+          );
+          await completer.future;
+        } catch (e) {
           emit(state.copyWith(
             status: AuthStatus.failure,
-            errorMessage: e.message,
+            errorMessage: e.toString(),
           ));
-        },
-        codeSent: (String verificationID, int? resendToken) async {
-          //TODO: Code is being sent but I need to navigate to otp screen and verify it
-          //TODO: user_id everywhere
-          emit(CodeSentState());
-          emit(state.copyWith(verificationId: verificationID));
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          // Handle timeout scenario
-        },
-      );
-    } catch (e) {
-      emit(state.copyWith(
-        status: AuthStatus.failure,
-        errorMessage: e.toString(),
-      ));
+        }
+      }
     }
   }
 
@@ -216,6 +225,8 @@ class AuthBloc extends Bloc<IAuthEvent, AuthState> {
             storedPhoneNumber != event.password) {
           emit.isDone;
           statusAuth = AuthStatus.wrongPassword;
+        } else if (storedPhoneNumber != event.phoneNumber) {
+          statusAuth = AuthStatus.newUser;
         }
       } else {
         emit(state.copyWith(

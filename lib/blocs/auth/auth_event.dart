@@ -139,6 +139,12 @@ class CodeSent extends IAuthEvent {
   List<Object> get props => [verificationId];
 }
 
+class VerifyOtpEvent extends IAuthEvent {
+  final String otp;
+
+  const VerifyOtpEvent(this.otp);
+}
+
 class AuthSignedIn extends IAuthEvent {}
 
 class AuthSignedOut extends IAuthEvent {}

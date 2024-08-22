@@ -9,6 +9,11 @@ class NavigationHelper {
     Navigator.of(context).pushReplacement(_createRoute(page));
   }
 
+  static void navigatePushAndRemoveUntil(BuildContext context, Widget page) {
+    Navigator.of(context)
+        .pushAndRemoveUntil(_createRoute(page), (route) => false);
+  }
+
   static Route _createRoute(Widget page) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => page,

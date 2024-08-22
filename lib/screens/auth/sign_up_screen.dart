@@ -11,13 +11,14 @@ class SignUpScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => AuthBloc(sharedPreferences),
-      child: const _SignUpView(),
+      child: _SignUpView(sharedPreferences),
     );
   }
 }
 
 class _SignUpView extends StatefulWidget {
-  const _SignUpView();
+  final SharedPreferences sharedPreferences;
+  const _SignUpView(this.sharedPreferences);
 
   @override
   State<_SignUpView> createState() => _SignUpViewState();
@@ -133,22 +134,36 @@ class _SignUpViewState extends State<_SignUpView> {
               SizedBox(
                 height: 20.h,
               ),
-              CustomTextField(
-                  hintText: 'Age',
-                  textEditingController: _ageController,
-                  suffixIcon: Icons.arrow_downward,
-                  showSuffixIcon: true,
-                  readOnly: true,
-                  onSuffixIconTap: () {
-                    _showAgePickerBottomSheet(context);
-                  },
-                  prefixIcon: Icons.person_2),
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  return CustomTextField(
+                      hintText: AppLocalizations.of(context)!.age,
+                      errorText: state.isAgeValid
+                          ? null
+                          : AppLocalizations.of(context)!.ageRequired,
+                      textEditingController: _ageController,
+                      suffixIcon: Icons.arrow_downward,
+                      showSuffixIcon: true,
+                      readOnly: true,
+                      onSuffixIconTap: () {
+                        _showAgePickerBottomSheet(context);
+                      },
+                      prefixIcon: Icons.person_2);
+                },
+              ),
               SizedBox(
                 height: 20.h,
               ),
-              GenderDropdownTextField(
-                hintText: AppLocalizations.of(context)!.gender,
-                textEditingController: _genderController,
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  return GenderDropdownTextField(
+                    errorText: state.isGenderValid
+                        ? null
+                        : AppLocalizations.of(context)!.genderRequired,
+                    hintText: AppLocalizations.of(context)!.gender,
+                    textEditingController: _genderController,
+                  );
+                },
               ),
               SizedBox(
                 height: 20.h,
@@ -204,7 +219,7 @@ class _SignUpViewState extends State<_SignUpView> {
                     },
                     errorText: state.isConfirmPasswordValid
                         ? null
-                        : 'Passwords must match',
+                        : AppLocalizations.of(context)!.passwordMatch,
                     obscureText: !state.showConfirmPassword,
                   );
                 },
@@ -215,10 +230,13 @@ class _SignUpViewState extends State<_SignUpView> {
               BlocListener<AuthBloc, AuthState>(
                 listener: (context, state) {
                   {
-                    if (state.verificationId.isNotEmpty) {
+                    if (state.verificationId.isNotEmpty &&
+                        state.status == AuthStatus.otpSent) {
                       NavigationHelper.navigateTo(
                         context,
-                        OtpScreen(verificationId: state.verificationId),
+                        OtpScreen(
+                            verificationId: state.verificationId,
+                            sharedPreferences: widget.sharedPreferences),
                       );
                     } else if (state.status == AuthStatus.failure) {
                       // Show error message or handle failure
@@ -227,6 +245,8 @@ class _SignUpViewState extends State<_SignUpView> {
                             content:
                                 Text(state.errorMessage ?? 'Unknown error')),
                       );
+                    } else if (state.status == AuthStatus.userExists) {
+                      //TODO: Create a dialog to navigate to sign in
                     }
                   }
                 },
@@ -252,7 +272,7 @@ class _SignUpViewState extends State<_SignUpView> {
                                       .add(UploadUserDataRequested(
                                         password: _passwordController.text,
                                         name: _nameController.text,
-                                        //TODO: CHange this when it works
+                                        //TODO: Change this when it works
                                         userId: 'user_id',
                                         phoneNumber:
                                             _phoneNumberController.text,
