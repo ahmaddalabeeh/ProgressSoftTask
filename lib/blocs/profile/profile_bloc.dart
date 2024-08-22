@@ -30,8 +30,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     try {
       DocumentSnapshot<Map<String, dynamic>> snapshot =
-          //TODO: CHange this when it works
-
           await firestore.collection('users').doc('user_id').get();
 
       if (snapshot.exists) {

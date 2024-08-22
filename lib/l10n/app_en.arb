@@ -32,6 +32,11 @@
   "phoneNumberNotFound":"Phone number not found. Create a new account?",
   "newUser":"New User?",
   "ageRequired":"Please select age",
-  "genderRequired":"Please select gender"
+  "genderRequired":"Please select gender",
+  "wrongPassword":"Wrong Password. Please try again",
+  "ok":"Ok",
+  "error":"Error",
+  "userExists":"User already exists",
+  "useExistingAccount":"Sign in with your existing account"
 
 }

@@ -55,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.primaryColor,
         centerTitle: true,
         title: Text(

@@ -3,12 +3,14 @@ class UserModel {
   final String age;
   final String gender;
   final String phoneNumber;
+  final String? password;
 
   UserModel({
     required this.name,
     required this.age,
     required this.gender,
     required this.phoneNumber,
+    this.password,
   });
 
   factory UserModel.fromFirestore(Map<String, dynamic> data) {

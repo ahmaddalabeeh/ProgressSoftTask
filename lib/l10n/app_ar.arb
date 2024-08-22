@@ -31,7 +31,12 @@
   "cancel":"الغاء",
   "phoneNumberNotFound":"لم يتم العثور على رقم الهاتف. تسجيل حساب جديد؟",
   "ageRequired":"الرجاء اختيار العمر",
-  "genderRequired":"الرجاء اختيار الجنس"
+  "genderRequired":"الرجاء اختيار الجنس",
+  "wrongPassword":"كلمة مرور خطأ, يرجى المحاولة مرة اخرى",
+  "ok":"حسنا",
+  "error":"خطأ",
+  "userExists":"المستخدم موجود",
+  "useExistingAccount":"استخدم حسابك المسجل"
 
 
 }

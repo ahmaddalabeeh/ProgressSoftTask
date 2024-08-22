@@ -6,7 +6,6 @@ import 'package:ahmad_progress_soft_task/blocs/profile/profile_state.dart';
 import 'package:ahmad_progress_soft_task/language/model/language_model.dart';
 import 'package:ahmad_progress_soft_task/screens/auth/auth_imports.dart';
 import 'package:ahmad_progress_soft_task/screens/auth/sign_in_screen.dart';
-import 'package:ahmad_progress_soft_task/screens/home/home_imports.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -55,7 +54,6 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(height: 45.h),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.w),
                         child: Column(
@@ -141,7 +139,7 @@ class ProfileScreen extends StatelessWidget {
                         },
                         child: const Text('Switch to English'),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: 16.h),
                       ElevatedButton(
                         onPressed: () {
                           languageBloc.add(

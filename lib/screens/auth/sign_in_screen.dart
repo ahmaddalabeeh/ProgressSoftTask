@@ -24,7 +24,8 @@ class SignInScreen extends StatelessWidget {
               SnackBar(
                   content: Text(state.errorMessage ?? 'Authentication failed')),
             );
-          } else if (state.status == AuthStatus.wrongPassword) {
+          } else if (state.status == AuthStatus.wrongPassword &&
+              !state.isPasswordValid) {
             _showWrongPasswordDialog(context);
           } else if (state.status == AuthStatus.newUser) {
             _showNewUserDialog(context, sharedPreferences);
@@ -215,11 +216,11 @@ void _showWrongPasswordDialog(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('Error'),
-        content: const Text('Wrong password, please try again.'),
+        title: Text(AppLocalizations.of(context)!.error),
+        content: Text(AppLocalizations.of(context)!.wrongPassword),
         actions: <Widget>[
           TextButton(
-            child: const Text('OK'),
+            child: Text(AppLocalizations.of(context)!.ok),
             onPressed: () {
               Navigator.of(context).pop();
             },

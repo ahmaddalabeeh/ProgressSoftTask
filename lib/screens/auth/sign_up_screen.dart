@@ -1,3 +1,5 @@
+import 'package:ahmad_progress_soft_task/screens/auth/sign_in_screen.dart';
+import 'package:ahmad_progress_soft_task/screens/profile/my_user_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:ahmad_progress_soft_task/screens/auth/auth_imports.dart';
 import 'package:ahmad_progress_soft_task/screens/otp/otp_screen.dart';
@@ -227,76 +229,79 @@ class _SignUpViewState extends State<_SignUpView> {
               SizedBox(
                 height: 30.h,
               ),
-              BlocListener<AuthBloc, AuthState>(
-                listener: (ctx, state) async {
-                  {
-                    if (state.verificationId.isNotEmpty &&
-                        state.status == AuthStatus.otpSent) {
-                      await NavigationHelper.navigateToAsync(
-                        context,
-                        OtpScreen(
-                            verificationId: state.verificationId,
-                            sharedPreferences: widget.sharedPreferences),
-                      );
-                      if (state.status == AuthStatus.otpVerified) {
-                        // Insert data
-                        print("====== upload data");
-                        ctx.read<AuthBloc>().add(UploadUserDataRequested(
-                              password: _passwordController.text,
-                              name: _nameController.text,
-                              //TODO: Change this when it works
-                              userId: 'user_id',
-                              phoneNumber: _phoneNumberController.text,
-                              age: _ageController.text,
-                              gender: _genderController.text,
-                            ));
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (ctx1, state) {
+                  return BlocListener<AuthBloc, AuthState>(
+                    listener: (ctx, state) {
+                      {
+                        if (state.verificationId.isNotEmpty &&
+                            state.status == AuthStatus.otpSent) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => OtpScreen(
+                                    verificationId: state.verificationId,
+                                    sharedPreferences:
+                                        widget.sharedPreferences),
+                                settings: RouteSettings(
+                                    arguments: UserModel(
+                                        name: _nameController.text,
+                                        age: _ageController.text,
+                                        password: _passwordController.text,
+                                        gender: _genderController.text,
+                                        phoneNumber:
+                                            _phoneNumberController.text))),
+                          );
+                        } else if (state.status == AuthStatus.failure) {
+                          // Show error message or handle failure
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    state.errorMessage ?? 'Unknown error')),
+                          );
+                        } else if (state.status == AuthStatus.userExists) {
+                          _showUserExistsDialog(
+                              context, widget.sharedPreferences);
+                        }
                       }
-                    } else if (state.status == AuthStatus.failure) {
-                      // Show error message or handle failure
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content:
-                                Text(state.errorMessage ?? 'Unknown error')),
-                      );
-                    } else if (state.status == AuthStatus.userExists) {
-                      //TODO: Create a dialog to navigate to sign in
-                    }
-                  }
+                    },
+                    child: BlocBuilder<AuthBloc, AuthState>(
+                      builder: (ctx, state) {
+                        return CustomElevatedButton(
+                          onPressed: state.isSignUpButtonEnabled
+                              ? () {
+                                  if (state.status == AuthStatus.loading) {
+                                    null;
+                                  } else {
+                                    ctx.read<AuthBloc>().add(RegisterRequested(
+                                          fullName: _nameController.text,
+                                          phoneNumber:
+                                              _phoneNumberController.text,
+                                          age: _ageController.text,
+                                          gender: _genderController.text,
+                                          password: _passwordController.text,
+                                        ));
+                                  }
+                                }
+                              : null,
+                          isEnabled: state.isSignUpButtonEnabled,
+                          child: Center(
+                            child: state.status == AuthStatus.loading
+                                ? const CircularProgressIndicator()
+                                : Text(
+                                    AppLocalizations.of(context)!.signUp,
+                                    style: TextStyle(
+                                      fontSize: FontSizes.xxMid,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.whiteColor,
+                                    ),
+                                  ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
                 },
-                child: BlocBuilder<AuthBloc, AuthState>(
-                  builder: (ctx, state) {
-                    return CustomElevatedButton(
-                      onPressed: state.isSignUpButtonEnabled
-                          ? () {
-                              if (state.status == AuthStatus.loading) {
-                                null;
-                              } else {
-                                ctx.read<AuthBloc>().add(RegisterRequested(
-                                      fullName: _nameController.text,
-                                      phoneNumber: _phoneNumberController.text,
-                                      age: _ageController.text,
-                                      gender: _genderController.text,
-                                      password: _passwordController.text,
-                                    ));
-                              }
-                            }
-                          : null,
-                      isEnabled: state.isSignUpButtonEnabled,
-                      child: Center(
-                        child: state.status == AuthStatus.loading
-                            ? const CircularProgressIndicator()
-                            : Text(
-                                AppLocalizations.of(context)!.signUp,
-                                style: TextStyle(
-                                  fontSize: FontSizes.xxMid,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.whiteColor,
-                                ),
-                              ),
-                      ),
-                    );
-                  },
-                ),
               ),
             ],
           ),
@@ -346,4 +351,26 @@ class _SignUpViewState extends State<_SignUpView> {
       },
     );
   }
+}
+
+void _showUserExistsDialog(
+    BuildContext context, SharedPreferences sharedPreferences) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(AppLocalizations.of(context)!.userExists),
+        content: Text(AppLocalizations.of(context)!.useExistingAccount),
+        actions: <Widget>[
+          TextButton(
+            child: Text(AppLocalizations.of(context)!.signIn),
+            onPressed: () {
+              NavigationHelper.navigateToAsync(
+                  context, SignInScreen(sharedPreferences: sharedPreferences));
+            },
+          ),
+        ],
+      );
+    },
+  );
 }
