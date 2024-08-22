@@ -25,7 +25,7 @@ class SignInScreen extends StatelessWidget {
                   content: Text(state.errorMessage ?? 'Authentication failed')),
             );
           } else if (state.status == AuthStatus.wrongPassword &&
-              !state.isPasswordValid) {
+              state.isPasswordValid) {
             _showWrongPasswordDialog(context);
           } else if (state.status == AuthStatus.newUser) {
             _showNewUserDialog(context, sharedPreferences);
